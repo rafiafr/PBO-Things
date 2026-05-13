@@ -93,8 +93,8 @@ class SistemPerpustakaan:
                     print(f"Buku '{buku['judul']}' tidak bisa dipinjam (Status: {buku['status']}).")
                     break
                 else:
-                    # Jika buku tersedia, buat transaksi baru
-                    no_transaksi = f"TRX{self.transaksi_counter:03d}"
+                    # Jika buku tersedia, buat transaksi baru dengan prefix TRS
+                    no_transaksi = f"TRS{self.transaksi_counter:03d}"
                     self.transaksi_counter += 1
                     tgl_pinjam = self.get_tanggal_sekarang()
                     
@@ -148,17 +148,17 @@ class SistemPerpustakaan:
                     # Kembalikan status buku menjadi 'Tersedia'
                     buku['status'] = 'Tersedia'
                     
-                    # Cari transaksi terakhir untuk buku ini di riwayat transaksi dan update tanggal kembalinya
-                    for trx in reversed(self.riwayat_transaksi):
-                        if trx['kode_buku'] == kode_buku and trx['status'] == 'Dipinjam':
-                            trx['tgl_kembali'] = tgl_kembali
-                            trx['status'] = 'Dikembalikan'
+                    # Cari transaksi terakhir untuk buku ini di riwayat transaksi menggunakan variabel trs
+                    for trs in reversed(self.riwayat_transaksi):
+                        if trs['kode_buku'] == kode_buku and trs['status'] == 'Dipinjam':
+                            trs['tgl_kembali'] = tgl_kembali
+                            trs['status'] = 'Dikembalikan'
                             
                             # Tampilkan bukti pengembalian (Output 1)
                             print("\n-- Pengembalian Berhasil --")
-                            print(f"Nomor Transaksi : {trx['no_transaksi']}")
-                            print(f"Nama Anggota    : {trx['nama_anggota']}")
-                            print(f"Judul Buku      : {trx['judul_buku']}")
+                            print(f"Nomor Transaksi : {trs['no_transaksi']}")
+                            print(f"Nama Anggota    : {trs['nama_anggota']}")
+                            print(f"Judul Buku      : {trs['judul_buku']}")
                             print(f"Tanggal Kembali : {tgl_kembali}")
                             break
                     break
@@ -180,7 +180,7 @@ class SistemPerpustakaan:
         anggota = self.data_anggota[no_anggota]
         
         # Mencari daftar buku yang berstatus 'Dipinjam' oleh anggota ini
-        buku_dipinjam = [trx for trx in self.riwayat_transaksi if trx['no_anggota'] == no_anggota and trx['status'] == 'Dipinjam']
+        buku_dipinjam = [trs for trs in self.riwayat_transaksi if trs['no_anggota'] == no_anggota and trs['status'] == 'Dipinjam']
         
         # Jika ada buku yang sedang dipinjam
         if len(buku_dipinjam) > 0:
@@ -189,8 +189,8 @@ class SistemPerpustakaan:
             print(f"{'No':<5} | {'Kode Buku':<10} | {'Judul Buku':<25} | {'Status':<15}")
             print("-" * 65)
             # Menampilkan list buku
-            for i, trx in enumerate(buku_dipinjam, 1):
-                print(f"{i:<5} | {trx['kode_buku']:<10} | {trx['judul_buku']:<25} | {trx['status']:<15}")
+            for i, trs in enumerate(buku_dipinjam, 1):
+                print(f"{i:<5} | {trs['kode_buku']:<10} | {trs['judul_buku']:<25} | {trs['status']:<15}")
         else:
             # Jika tidak ada tanggungan pinjaman
             print("Notif: Tidak ada buku yang dipinjam")
@@ -221,11 +221,11 @@ class SistemPerpustakaan:
         if not self.riwayat_transaksi:
             print("Belum ada riwayat transaksi.")
         else:
-            # Menampilkan tabel mendatar riwayat transaksi secara lengkap
-            print(f"{'No':<4} | {'No Trx':<10} | {'Tgl Pinjam':<20} | {'Tgl Kembali':<20} | {'Nama Anggota':<15} | {'Kode Buku':<10} | {'Judul':<20} | {'Status'}")
+            # Menampilkan tabel mendatar riwayat transaksi secara lengkap (Header diubah jadi No Trs)
+            print(f"{'No':<4} | {'No Trs':<10} | {'Tgl Pinjam':<20} | {'Tgl Kembali':<20} | {'Nama Anggota':<15} | {'Kode Buku':<10} | {'Judul':<20} | {'Status'}")
             print("-" * 125)
-            for i, trx in enumerate(self.riwayat_transaksi, 1):
-                print(f"{i:<4} | {trx['no_transaksi']:<10} | {trx['tgl_pinjam']:<20} | {trx['tgl_kembali']:<20} | {trx['nama_anggota']:<15} | {trx['kode_buku']:<10} | {trx['judul_buku']:<20} | {trx['status']}")
+            for i, trs in enumerate(self.riwayat_transaksi, 1):
+                print(f"{i:<4} | {trs['no_transaksi']:<10} | {trs['tgl_pinjam']:<20} | {trs['tgl_kembali']:<20} | {trs['nama_anggota']:<15} | {trs['kode_buku']:<10} | {trs['judul_buku']:<20} | {trs['status']}")
 
     # ==========================================
     # FUNGSI UTAMA: MENJALANKAN PROGRAM (MENU LOOP)
