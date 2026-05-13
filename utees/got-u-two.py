@@ -2,44 +2,59 @@ import random
 import datetime
 
 class SistemPerpustakaan:
+    # Method __init__ ini akan pertama kali dipanggil saat objek dibuat.
+    # Berfungsi sebagai tempat penyimpanan data (database sementara).
     def __init__(self):
-        # Inisialisasi database penyimpanan
-        self.data_buku = {}
-        self.data_anggota = {}
-        self.riwayat_transaksi = []
-        self.transaksi_counter = 1
+        self.data_buku = {}         # Dictionary untuk menyimpan data buku berdasarkan kode_buku
+        self.data_anggota = {}      # Dictionary untuk menyimpan data anggota berdasarkan no_anggota
+        self.riwayat_transaksi = [] # List untuk menyimpan riwayat peminjaman/pengembalian
+        self.transaksi_counter = 1  # Variabel untuk membuat nomor urut transaksi otomatis
 
+    # Fungsi bantuan (helper) untuk mendapatkan waktu saat ini dari sistem
     def get_tanggal_sekarang(self):
         return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # ==========================================
+    # MENU 1: FUNGSI TAMBAH DATA BUKU
+    # ==========================================
     def tambah_buku(self):
         print("\n--- Tambah Data Buku ---")
+        # Looping untuk memastikan kode buku yang diinput belum ada di database
         while True:
             kode_buku = input("Masukkan Kode Buku: ")
             if kode_buku in self.data_buku:
                 print("Notif: Kode sama! Kode buku sudah ada, silakan masukkan kode lain.")
             else:
-                break
+                break # Keluar dari loop jika kode buku unik
         
+        # Meminta input detail buku lainnya
         judul_buku = input("Judul Buku: ")
         penulis = input("Penulis: ")
         tahun_terbit = input("Tahun Terbit: ")
         
+        # Menyimpan data buku ke dalam dictionary data_buku
         self.data_buku[kode_buku] = {
             'judul': judul_buku,
             'penulis': penulis,
             'tahun': tahun_terbit,
-            'status': 'Tersedia'
+            'status': 'Tersedia' # Status default saat pertama ditambahkan
         }
         print("Data buku berhasil ditambahkan!")
 
+    # ==========================================
+    # MENU 2: FUNGSI TAMBAH DATA ANGGOTA
+    # ==========================================
     def tambah_anggota(self):
         print("\n--- Tambah Data Anggota ---")
+        # Meminta input data diri anggota
         nama = input("Nama: ")
         alamat = input("Alamat: ")
         no_hp = input("No HP: ")
         
+        # Membuat nomor anggota secara acak (random) antara 1000 - 9999
         no_anggota = "ANG" + str(random.randint(1000, 9999))
+        
+        # Menyimpan data anggota ke dalam dictionary data_anggota
         self.data_anggota[no_anggota] = {
             'nama': nama,
             'alamat': alamat,
@@ -47,33 +62,46 @@ class SistemPerpustakaan:
         }
         print(f"Data anggota berhasil disimpan. Nomor anggota Anda: {no_anggota}")
 
+    # ==========================================
+    # MENU 3: FUNGSI PINJAM BUKU
+    # ==========================================
     def pinjam_buku(self):
         print("\n--- Pinjam Buku ---")
+        # Input 1: Nomor anggota
         no_anggota = input("Masukkan Nomor Anggota: ")
         
+        # Validasi apakah nomor anggota ada di database
         if no_anggota not in self.data_anggota:
             print("Nomor anggota tidak ditemukan!")
-            return
+            return # Menghentikan proses peminjaman jika anggota tidak ada
             
+        # Mengambil data anggota untuk ditampilkan (Output 1)
         anggota = self.data_anggota[no_anggota]
         print(f"\nData Anggota -> Nama: {anggota['nama']}, Alamat: {anggota['alamat']}, No HP: {anggota['no_hp']}")
         
+        # Input 2: Kode buku yang ingin dipinjam
         while True:
             kode_buku = input("Masukkan Kode Buku yang akan dipinjam: ")
+            
+            # Cek apakah kode buku ada di database
             if kode_buku not in self.data_buku:
                 print("Notif: Kode tidak tersedia.")
             else:
                 buku = self.data_buku[kode_buku]
+                # Cek status buku, apakah tersedia atau sedang dipinjam
                 if buku['status'] != 'Tersedia':
                     print(f"Buku '{buku['judul']}' tidak bisa dipinjam (Status: {buku['status']}).")
                     break
                 else:
+                    # Jika buku tersedia, buat transaksi baru
                     no_transaksi = f"TRX{self.transaksi_counter:03d}"
                     self.transaksi_counter += 1
                     tgl_pinjam = self.get_tanggal_sekarang()
                     
+                    # Ubah status buku menjadi 'Dipinjam'
                     buku['status'] = 'Dipinjam'
                     
+                    # Buat record transaksi
                     transaksi = {
                         'no_transaksi': no_transaksi,
                         'no_anggota': no_anggota,
@@ -84,8 +112,10 @@ class SistemPerpustakaan:
                         'tgl_kembali': '-',
                         'status': 'Dipinjam'
                     }
+                    # Masukkan ke dalam list riwayat_transaksi
                     self.riwayat_transaksi.append(transaksi)
                     
+                    # Tampilkan bukti peminjaman (Output 2)
                     print("\n-- Peminjaman Berhasil --")
                     print(f"Nomor Transaksi : {no_transaksi}")
                     print(f"Nama Anggota    : {anggota['nama']}")
@@ -93,26 +123,38 @@ class SistemPerpustakaan:
                     print(f"Tanggal Pinjam  : {tgl_pinjam}")
                     break
 
+    # ==========================================
+    # MENU 4: FUNGSI KEMBALIKAN BUKU
+    # ==========================================
     def kembalikan_buku(self):
         print("\n--- Kembalikan Buku ---")
         while True:
             kode_buku = input("Masukkan Kode Buku yang dikembalikan: ")
+            
+            # Cek ketersediaan kode buku
             if kode_buku not in self.data_buku:
                 print("Notif: Kode tidak tersedia.")
             else:
                 buku = self.data_buku[kode_buku]
+                
+                # Memastikan buku memang sedang dipinjam
                 if buku['status'] == 'Tersedia':
                     print("Notif: Buku ini tidak sedang dipinjam.")
                     break
                 else:
+                    # Proses pengembalian
                     tgl_kembali = self.get_tanggal_sekarang()
+                    
+                    # Kembalikan status buku menjadi 'Tersedia'
                     buku['status'] = 'Tersedia'
                     
+                    # Cari transaksi terakhir untuk buku ini di riwayat transaksi dan update tanggal kembalinya
                     for trx in reversed(self.riwayat_transaksi):
                         if trx['kode_buku'] == kode_buku and trx['status'] == 'Dipinjam':
                             trx['tgl_kembali'] = tgl_kembali
                             trx['status'] = 'Dikembalikan'
                             
+                            # Tampilkan bukti pengembalian (Output 1)
                             print("\n-- Pengembalian Berhasil --")
                             print(f"Nomor Transaksi : {trx['no_transaksi']}")
                             print(f"Nama Anggota    : {trx['nama_anggota']}")
@@ -121,34 +163,48 @@ class SistemPerpustakaan:
                             break
                     break
 
+    # ==========================================
+    # MENU 5: FUNGSI INFO ANGGOTA
+    # ==========================================
     def info_anggota(self):
         print("\n--- Info Anggota ---")
+        # Validasi anggota
         while True:
             no_anggota = input("Masukkan Nomor Anggota: ")
             if no_anggota not in self.data_anggota:
                 print("Notif: Anggota tidak ditemukan.")
-                return
+                return # Kembali ke menu utama jika tidak ketemu
             else:
                 break
         
         anggota = self.data_anggota[no_anggota]
+        
+        # Mencari daftar buku yang berstatus 'Dipinjam' oleh anggota ini
         buku_dipinjam = [trx for trx in self.riwayat_transaksi if trx['no_anggota'] == no_anggota and trx['status'] == 'Dipinjam']
         
+        # Jika ada buku yang sedang dipinjam
         if len(buku_dipinjam) > 0:
             print(f"\nHeader : Nomor Anggota: {no_anggota}, Nama: {anggota['nama']}, Alamat: {anggota['alamat']}, Nomor HP: {anggota['no_hp']}")
             print("DAFTAR BUKU YANG SEDANG DIPINJAM:")
             print(f"{'No':<5} | {'Kode Buku':<10} | {'Judul Buku':<25} | {'Status':<15}")
             print("-" * 65)
+            # Menampilkan list buku
             for i, trx in enumerate(buku_dipinjam, 1):
                 print(f"{i:<5} | {trx['kode_buku']:<10} | {trx['judul_buku']:<25} | {trx['status']:<15}")
         else:
+            # Jika tidak ada tanggungan pinjaman
             print("Notif: Tidak ada buku yang dipinjam")
 
+    # ==========================================
+    # MENU 6: FUNGSI DAFTAR BUKU
+    # ==========================================
     def daftar_buku(self):
         print("\n--- Daftar Buku ---")
+        # Mengecek apakah dictionary data_buku kosong
         if not self.data_buku:
             print("Notif: Belum ada data buku")
         else:
+            # Menampilkan tabel mendatar
             print(f"{'No':<5} | {'Kode Buku':<10} | {'Judul Buku':<25} | {'Penulis':<20} | {'Tahun':<6} | {'Status':<15}")
             print("-" * 90)
             no = 1
@@ -156,17 +212,26 @@ class SistemPerpustakaan:
                 print(f"{no:<5} | {kode:<10} | {info['judul']:<25} | {info['penulis']:<20} | {info['tahun']:<6} | {info['status']:<15}")
                 no += 1
 
+    # ==========================================
+    # MENU 7: FUNGSI RIWAYAT PEMINJAMAN
+    # ==========================================
     def tampilkan_riwayat(self):
-        print("\nRiwayat peminjaman")
+        print("\nRiwayat peminjaman") # Output Header
+        # Mengecek apakah belum ada transaksi yang terjadi
         if not self.riwayat_transaksi:
             print("Belum ada riwayat transaksi.")
         else:
+            # Menampilkan tabel mendatar riwayat transaksi secara lengkap
             print(f"{'No':<4} | {'No Trx':<10} | {'Tgl Pinjam':<20} | {'Tgl Kembali':<20} | {'Nama Anggota':<15} | {'Kode Buku':<10} | {'Judul':<20} | {'Status'}")
             print("-" * 125)
             for i, trx in enumerate(self.riwayat_transaksi, 1):
                 print(f"{i:<4} | {trx['no_transaksi']:<10} | {trx['tgl_pinjam']:<20} | {trx['tgl_kembali']:<20} | {trx['nama_anggota']:<15} | {trx['kode_buku']:<10} | {trx['judul_buku']:<20} | {trx['status']}")
 
+    # ==========================================
+    # FUNGSI UTAMA: MENJALANKAN PROGRAM (MENU LOOP)
+    # ==========================================
     def jalankan(self):
+        # Infinite loop agar menu terus tampil sampai user memilih angka 8
         while True:
             print("\n" + "="*40)
             print("SISTEM PERPUSTAKAAN")
@@ -183,6 +248,7 @@ class SistemPerpustakaan:
             
             pilihan = input("Pilih menu (1-8): ")
             
+            # Percabangan untuk memanggil method sesuai input user
             if pilihan == '1':
                 self.tambah_buku()
             elif pilihan == '2':
@@ -199,13 +265,15 @@ class SistemPerpustakaan:
                 self.tampilkan_riwayat()
             elif pilihan == '8':
                 print("Keluar Program... Terima kasih!")
-                break
+                break # Menghentikan loop yang berarti program selesai
             else:
                 print("Pilihan tidak valid. Silakan pilih menu 1-8.")
 
-# Cara mengeksekusi class tersebut:
+# ==========================================
+# BLOK EKSEKUSI PROGRAM
+# ==========================================
 if __name__ == "__main__":
-    # Membuat objek dari class SistemPerpustakaan
+    # 1. Membuat/instansiasi objek dari class SistemPerpustakaan
     aplikasi = SistemPerpustakaan()
-    # Menjalankan menu utama
+    # 2. Menjalankan fungsi utama yang berisi menu
     aplikasi.jalankan()
